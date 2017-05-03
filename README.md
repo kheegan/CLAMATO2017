@@ -1,6 +1,6 @@
 # CLAMATO2017
 
-Code for generating tomographic reconstruction of Ly-a forest data from the 2017 CLAMATO Survey
+Code for pre-processing data required for tomographic reconstruction of Ly-a forest data from the 2017 CLAMATO Survey
 
 GEN_DACH_INPUT.PRO: From the observed spectra, fits continua, applies pixel masks, and extracts Ly-a forest pixels to create a binary file in a format appropriate for tomographic reconstruction using the Dachshund code (Stark et al 2015, MNRAS, 453, 311)
 
