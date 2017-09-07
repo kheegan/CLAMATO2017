@@ -18,24 +18,24 @@ dec0 = 2.15
 ra1 = 150.39
 dec1 = 2.501
 
-zmin = 2.15
+zmin = 2.05
 zmax = 2.55
 zmid = avg([zmin, zmax])
-comdist0 = 2997. * comdis(zmin, Om, Ol)
-dcomdist_dz = dcomdisdz(zmid, Om, Ol) * 2997.
-mpc_amin = comdis(2.35, 0.31, 0.69)*2998. * !pi/180./60.
+comdist0 = 2998. * comdis(zmin, Om, Ol)
+dcomdist_dz = dcomdisdz(zmid, Om, Ol) * 2998.
+mpc_amin = comdis(zmid, 0.31, 0.69)*2998. * !pi/180./60.
 
 r_sm = 3.
-mapfil = 'map_2017_v0.bin'
-mapfil_sm = 'map_2017_sm3.0.bin'
-outsuf='slice_yz_Lpar2.2_Lperp2.0_v0_sm3.0_skewers_skymap'
+mapfil = 'map_2017_v1.bin'
+mapfil_sm = 'map_2017_v1_sm3.0.bin'
+outsuf='slice_yz_Lpar2.0_Lperp2.5_v1_sm3.0_skewers_skymap'
 
 ;; Read skewer xy positions
 readcol, '/Users/kheegan/lya/3d_recon/data/cl2017_redux/' + $
-         'cl2017_valueadded_20170426_vhiz.txt', tomoid, gmag, conf, $
-         ra_sk, dec_sk, sn1, sn2,f='x,l,f,f,x,f,f,f,f',/silent
+         'cl2017_valueadded_20170426_widez.txt', tomoid, gmag, conf, $
+         ra_sk, dec_sk, sn1, sn2, sn3,f='x,l,f,f,x,f,f,f,f,f',/silent
 
-skewerall = where((sn1 GE 1.2 OR sn2 GE 1.2) AND conf GE 3.)
+skewerall = where((sn1 GE 1.2 OR sn2 GE 1.2 OR sn3 GE 1.2) AND conf GE 3.)
 ra_sk = ra_sk[skewerall]
 ra_sk = ra_sk - 150.
 dec_sk = dec_sk[skewerall]
@@ -62,7 +62,7 @@ mosdef2016_fil = catdir+'mosdef_zcat.16aug2016.fits'
 
 nx = 60L
 ny = 48L
-nz = 680L
+nz = 876L
 
 if file_test(mapfil_sm) then begin
    map_in = dblarr(nx*ny*nz)
@@ -107,10 +107,10 @@ endif else begin
    maptmp = congrid(map_arr, nx/2., ny/2., nz/2.)
    
 ;; This function will take the array, pad it, and return a nz^3 array 
-   map_pad = pad_reflect_map2016(maptmp)
+   map_pad = pad_reflect_map(maptmp,438)
    map_sm = smooth_3d(map_pad, r_sm)
    
-   map_arr = map_sm[170-nx/4:170+nx/4-1, 170-ny/4:170+ny/4-1, *]
+   map_arr = map_sm[219-nx/4:219+nx/4-1, 219-ny/4:219+ny/4-1, *]
 
    map_arr = double(rebin(map_arr, nx, ny, nz))
 
@@ -145,14 +145,14 @@ ra_mosf = [cat_md.ra, double(ra_zf)]
 dec_mosf = [cat_md.dec, double(dec_zf)]
 z_mosf = [cat_md.z_mosfire, double(z_zf)]
 
-zcut_tmp = where(z_mosf LE 2.15 OR z_mosf GT 2.54)
+zcut_tmp = where(z_mosf LE 2.05 OR z_mosf GT 2.54)
 remove, zcut_tmp, ra_mosf, dec_mosf, z_mosf
 
 ;; Now read in COSMOS redshifts and throw out low-z stuff and
 ;; low-confidence 
 readcol, cosmos_specz_fil, ori_id,ra_gal, dec_gal,  $
          zspec, qflag, f='a,f,f,x,f,f', skip=120
-zcut = where(zspec LE 2.15 OR zspec GT 2.54)
+zcut = where(zspec LE 2.05 OR zspec GT 2.54)
 remove, zcut, ra_gal, dec_gal, zspec, qflag, ori_id
 ;; Remove low-quality redshifts
 qualcut = where(qflag LT 3 OR qflag GE 10)
@@ -240,20 +240,20 @@ readcol, '/Users/kheegan/lya/3d_recon/map2017/list_tomo_input_2017.txt', $
 set_plot, 'ps'
 
 device, file=outsuf+'.ps', /color, $
-        /encap, ysize=64.28, xsize=43.08, /inch
+        /encap, ysize=68., xsize=51.08, /inch
 !p.font=0
 nslice=15
 !p.multi = [0,1,nslice]
  
 
-deltamin = -0.25;min(sliceyz)
-deltamax = 0.15 ;max(sliceyz)
+deltamin = -0.30;min(sliceyz)
+deltamax = 0.20 ;max(sliceyz)
 
 erase
 
 ;; Generate redshift axis
 zmid = avg([zmin, zmax])
-dcomdist_dz = dcomdisdz(zmid, Om, Ol)*2997.
+dcomdist_dz = dcomdisdz(zmid, Om, Ol)*2998.
 
 y0 = 1./(2. * nslice) + (0.98/float(nslice)) * findgen(nslice)
 dy_plot = 1./float(2.*nslice)
@@ -294,10 +294,10 @@ for ii=0, nslice-1  do begin
 
    position_win = [0.18, y0[ii]-dy_plot, 0.9, y0[ii]+dy_plot]
 
-   xyratio = 48./680.
+   xyratio = 48./876.
    xypos = cgAspect(xyratio, position=position_win)
    
-   plot, findgen(680)/2., findgen(24), /nodata, xticks=0, yticks=0, $
+   plot, findgen(876)/2., findgen(24), /nodata, xticks=0, yticks=0, $
          xsty=13, ysty=13, position=xypos,/norm, charsize=1.7
 
    ywin0 = !y.window[0]
@@ -362,23 +362,23 @@ for ii=0, nslice-1  do begin
 ;      tvellipse, 4., 4., znpc/2,ynpc/2., /data, thick=5, color=djs_icolor('pink')
    endif
       
-   axis, yaxis=0, charsize=3.6, charthick=3, yran=[0,24],ysty=1, $
-         ytit=textoidl('y_{perp} (h^{-1} Mpc)'),ytickv=[0,4,8,12,16,20,24], $
-         yticks=6, yminor=4
+   axis, yaxis=0, charsize=5., charthick=4, yran=[0,24],ysty=1, $
+         ytit=textoidl('y_{perp} (h^{-1} Mpc)'),ytickv=[0,5,10,15,20], $
+         yticks=4, yminor=5
 
-   decran = dec0 + [0.,24.]/(2997.*comdis((zmin+zmax)/2., Om, Ol))*180./!dpi
-   axis, yaxis=1, charsize=3.6, charthick=3, yran=decran, /ysty, $
+   decran = dec0 + [0.,24.]/(2998.*comdis((zmin+zmax)/2., Om, Ol))*180./!dpi
+   axis, yaxis=1, charsize=5., charthick=4, yran=decran, /ysty, $
          ytit='Dec (deg)'
    
-   comdis0 = comdis(zmin, Om, Ol)*2997.
-   comdis1 = comdis0 + 340.
-   axis, xaxis=1, xran=[comdis0, comdis1], charthick=3, charsize=3.6, $
+   comdis0 = comdis(zmin, Om, Ol)*2998.
+   comdis1 = comdis0 +438.
+   axis, xaxis=1, xran=[comdis0, comdis1], charthick=4, charsize=5., $
          xsty=1, xtit=textoidl('Comoving Distance (h^{-1} Mpc)')
    
    z0 = zmin
-   z1 = z0 + 340./dcomdist_dz
-   axis, xaxis=0, xran=[z0, z1], charthick=3, charsize=3.6, $ 
-         xsty=1, xtit='redshift'
+   z1 = z0 + 438./dcomdist_dz
+   axis, xaxis=0, xran=[z0, z1], charthick=4, charsize=5., $ 
+         xsty=1, xtit='Redshift'
 
 ;; Plot little sky map
    position_sky=[0.005,ywin0, 0.18, ywin1]
@@ -402,13 +402,13 @@ for ii=0, nslice-1  do begin
    oplot, ra_sk, dec_sk, psym=8
    
    xran=[ra1-150., ra0-150.]
-   axis, yaxis=0, charsize=3.6, charthick=3, yran=decran, /ysty, $
+   axis, yaxis=0, charsize=4., charthick=4, yran=decran, /ysty, $
          ytit='Dec (deg)'
-   axis, yaxis=1, charsize=3.6, charthick=3, yran=decran, /ysty, $
+   axis, yaxis=1, charsize=4., charthick=4, yran=decran, /ysty, $
          YTICKFORMAT="(A1)"
-   axis, xaxis=0, charsize=3.6, charthick=3, xran=xran, /xsty, $
+   axis, xaxis=0, charsize=4., charthick=4, xran=xran, /xsty, $
          xtit='RA+150.0 (deg)', xtickinterval=0.1, xtickformat='(f4.1)' ;$
-   axis, xaxis=1, charsize=3.6, charthick=3, xran=xran, /xsty, $
+   axis, xaxis=1, charsize=4., charthick=4, xran=xran, /xsty, $
          xtickformat='(A1)'
    
 endfor
@@ -425,9 +425,9 @@ endfor
    ticknames = string(tickpts, '(f5.2)')
    colorbar, /vertical,position=[0.95,0.37,0.965,0.495] $
              ,divisions=4, ticknames=ticknames, ncolors=240, $
-             charsize=2.3, charthick=3,/right,/norm, /invert
+             charsize=2.5, charthick=4,/right,/norm, /invert
    xyouts, 0.954, 0.50, textoidl('\delta^{rec}_F'), charsize=3., $
-           charthick=3, /norm
+           charthick=4, /norm
 
 device, /close
 

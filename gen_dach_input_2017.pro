@@ -6,6 +6,9 @@
 ;; - No longer manually discard spectra; instead flag with negative
 ;;   numbers in catalog
 ;  - reduced restframe range to >1185A to avoid SiII lines at ~1192A  
+;;
+;; 2017/09/02: Modified to use the S/N_lya evaluated at 3 z-ranges in
+;; the catalog
 
 Om = 0.31
 Olamb = 1.-Om
@@ -19,21 +22,21 @@ specdir = datadir+'spec_v0/'
 ra0 = 149.95  
 dec0 = 2.15   
 
-zmin = 2.15
+zmin = 2.05
 zmax = 2.55
 waveminlya = 1215.67 * (1.+zmin)
 wavemaxlya = 1215.67 * (1.+zmax)
 ;zmid = avg([zmin, zmax])
-zmid = 2.35
+zmid = 2.30
 
 
 ; transverse comoving distance = angular separation(in rad) *
 ; comoving distance. So evaluate comoving distance
-comdist = 2997. * comdis(zmid, Om, Olamb)
+comdist = 2998. * comdis(zmid, Om, Olamb)
 ; For LOS distances we use a fixed dD/dz evaluated at zmid
-dcomdist_dz = dcomdisdz(zmid, Om, Olamb) * 2997.
+dcomdist_dz = dcomdisdz(zmid, Om, Olamb) * 2998.
 
-insp_fil =  datadir+'cl2017_valueadded_20170426.txt'
+insp_fil =  datadir+'cl2017_valueadded_20170426_widez.txt'
 
 ;; Read in CLAMATO catalog
 ;cat_fil = '/Users/kheegan/lya/3d_recon/ts/pilot/' + $
@@ -41,12 +44,13 @@ insp_fil =  datadir+'cl2017_valueadded_20170426.txt'
 ;cat = mrdfits(cat_fil, 1, /silent)
 
 readcol, insp_fil, specfil, catnum, mag, zconf, zsp, ra, dec, $
-         snrlya1, snrlya2, f='a, l, f, f, f,f ,f , f,f', /silent
+         snrlya1, snrlya2,snrlya3, f='a, l, f, f, f,f ,f , f,f,f', /silent
 
-qualcut = where((snrlya1 GE 1.2 OR snrlya2 GE 1.2) AND zconf GE 3., $
+qualcut = where((snrlya1 GE 1.2 OR snrlya2 GE 1.2 OR snrlya3 GE 1.2) $
+                AND zconf GE 3., $
                 nsel, complement=failcut) 
 
-remove, failcut, specfil, catnum, zsp, zconf, snrlya1,snrlya2, ra, dec, mag
+remove, failcut, specfil, catnum, zsp, zconf, snrlya1,snrlya2,snrlya3, ra, dec, mag
 
 ;; Manually remove objects that are deemed bad
 ;match, catnum, bad_id, sub1, sub2
@@ -54,6 +58,7 @@ remove, failcut, specfil, catnum, zsp, zconf, snrlya1,snrlya2, ra, dec, mag
 ;                             zsp, ra, dec, snrlya1, snrlya2
 
 nsel = n_elements(specfil)
+print, 'Selected ', nsel, ' spectra.
 
 ;; Read in continuum template. We also define a finite spectrum up to
 ;; 1400A because mean-flux regulation might act funny if it's
