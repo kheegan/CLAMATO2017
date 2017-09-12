@@ -9,6 +9,10 @@
 ;;
 ;; Also generate little transverse maps along each slice, indicating
 ;; position on the sky.
+;;
+;; 2017-09-01 - Extended redshift range to z=2.05-2.55
+;; 2017-09-09 - Read galaxies from a single text file. Different
+;;              symbols for each survey (no error bars)
 
 Om = 0.31
 Ol = 1.-Om
@@ -25,10 +29,10 @@ comdist0 = 2998. * comdis(zmin, Om, Ol)
 dcomdist_dz = dcomdisdz(zmid, Om, Ol) * 2998.
 mpc_amin = comdis(zmid, 0.31, 0.69)*2998. * !pi/180./60.
 
-r_sm = 3.
+r_sm = 2.
 mapfil = 'map_2017_v1.bin'
-mapfil_sm = 'map_2017_v1_sm3.0.bin'
-outsuf='slice_yz_Lpar2.0_Lperp2.5_v1_sm3.0_skewers_skymap'
+mapfil_sm = 'map_2017_v1_sm2.0.bin'
+outsuf='slice_yz_Lpar2.0_Lperp2.5_v1_sm2.0_skewers_skymap'
 
 ;; Read skewer xy positions
 readcol, '/Users/kheegan/lya/3d_recon/data/cl2017_redux/' + $
@@ -226,6 +230,11 @@ xmos = round(xmos[in_vol_mosf])
 ymos = ymos[in_vol_mosf]
 zmos = zmos[in_vol_mosf]
 
+readcol, 'cat_tomoxyz_cl2017_uniq_v1_no3dhst.dat', xpos, ypos, zpos, $
+         ori_id, f='f,f,f,a', skipline=4
+
+
+
 
 ;; DONE READING IN GALAXIES ---------------------------------------------
 
@@ -273,11 +282,11 @@ for ii=0, nslice-1  do begin
    x0obj = float(4*ii)
    x1obj = float(4*ii) + 4.
    
-   galcut = where(xpos GE x0obj AND xpos LT x1obj AND $
-                  strmatch(ori_id,'MOSFIRE') EQ 0, ngalhere)
+   galcut = where(xpos GE x0obj AND xpos LT x1obj, ngalhere)
    if ngalhere GT 0 then begin
       ygal = ypos[galcut]
       zgal = zpos[galcut]
+      gal_id = ori_id[galcut]
    endif
 
    nircut = where(xmos GE x0obj AND xmos LT x1obj, nnirhere)
@@ -324,13 +333,38 @@ for ii=0, nslice-1  do begin
       
    loadct, 0, /silent
    if ngalhere GT 0 then begin
-      oploterror, zgal/2., ygal/2., $
-                  replicate(dz_gal, ngalhere), replicate(0., ngalhere), $
+      getzDeep = where(strmatch(gal_id, 'zDeep'),nzd)
+      getVUDS = where(strmatch(gal_id, 'VUDS'),nvu)
+      getMOSDEF = where(strmatch(gal_id, 'MOSDEF'),nmd)
+      getZFIRE = where(strmatch(gal_id, 'ZFIRE'),nzf)
+      getCLAMATO = where(strmatch(gal_id, 'CLAMATO'),ncl)
+      ;; Squares for zCOSMOS
+      if nzd GT 0 then begin
+         oplot, zgal[getzDeep]/2., ygal[getzDeep]/2., $
                   psym=cgsymcat(15), thick=5, color=150, symsize=2.
-   endif
-
-   if nnirhere Gt 0 then begin
-      oplot, znir/2., ynir/2., color=150,  psym=cgsymcat(15), symsize=2.
+         oplot, zgal[getzDeep]/2., ygal[getzDeep]/2., $
+                psym=cgsymcat('OPENSQUARE'), thick=5, color=0, symsize=2.
+      endif
+      ;; Diamonds for VUDS
+      if nvu GT 0 then begin
+         oplot, zgal[getVUDS]/2., ygal[getVUDS]/2., $
+                psym=cgsymcat(14), color=150, symsize=3.
+         oplot, zgal[getVUDS]/2., ygal[getVUDS]/2., $
+                psym=cgsymcat('OPENDIAMOND'), color=0, symsize=3.
+      endif
+      ;; Circles for CLAMATO
+      if ncl GT 0 then begin
+         oplot, zgal[getCLAMATO]/2., ygal[getCLAMATO]/2., $
+                psym=cgsymcat('FILLEDCIRCLE'), color=150, symsize=2.5
+         oplot, zgal[getCLAMATO]/2., ygal[getCLAMATO]/2., $
+                psym=cgsymcat('OPENCIRCLE'), color=0, symsize=2.5
+      endif
+      ;; Plusses for ZFIRE
+      if nzf GT 0 then oplot, zgal[getZFIRE]/2., ygal[getZFIRE]/2., $
+             psym=cgsymcat(1), color=0, symsize=3.5, thick=6
+      ;; X for MOSDEF
+      if nmd GT 0 then oplot, zgal[getMOSDEF]/2., ygal[getMOSDEF]/2., $
+             psym=cgsymcat(7), color=0, symsize=2.5, thick=6
    endif
 
    if npchere GT 0 then begin
