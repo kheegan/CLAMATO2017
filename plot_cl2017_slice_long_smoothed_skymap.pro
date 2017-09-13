@@ -13,6 +13,8 @@
 ;; 2017-09-01 - Extended redshift range to z=2.05-2.55
 ;; 2017-09-09 - Read galaxies from a single text file. Different
 ;;              symbols for each survey (no error bars)
+;; 2017-09-12 - Plot color bar twice, so that the figure can be split
+;;              in two in the paper.
 
 Om = 0.31
 Ol = 1.-Om
@@ -126,114 +128,12 @@ endelse
 
 ;; Done with smoothing ---------------------------------------------
 
-print, 'Reading in MOSDEF redshifts'
-cat_md = mrdfits(mosdef2016_fil,1)
-
-;; We only want redshifts within COSMOS, then match in ra+dec 
-getcosmos = where(strmatch(cat_md.field,'*COSMOS*') AND $
-                  cat_md.z_mosfire GE 2.,nmosdef)
-cat_md = cat_md[getcosmos]
-
-;; Read ZFIRE catalog --------------------------------------------
-readcol, catdir+'KG_ZFIRE_catalog.txt', ra_zf, dec_zf, z_zf, conf_zf, $
-         f='x,f,f,f,l'
-
-;; Find and remove duplicates between MOSDEF and ZFIRE that are
-;; within ~0.4" of each other
-nmatch = djs_angle_nmatch(cat_md.ra, cat_md.dec, ra_zf, dec_zf, $
-                          1.e-4)
-remove, where(nmatch GT 0), ra_zf, dec_zf, z_zf
-
-;; Combine MOSDEF and ZFIRE redshifts
-ra_mosf = [cat_md.ra, double(ra_zf)]
-dec_mosf = [cat_md.dec, double(dec_zf)]
-z_mosf = [cat_md.z_mosfire, double(z_zf)]
-
-zcut_tmp = where(z_mosf LE 2.05 OR z_mosf GT 2.54)
-remove, zcut_tmp, ra_mosf, dec_mosf, z_mosf
-
-;; Now read in COSMOS redshifts and throw out low-z stuff and
-;; low-confidence 
-readcol, cosmos_specz_fil, ori_id,ra_gal, dec_gal,  $
-         zspec, qflag, f='a,f,f,x,f,f', skip=120
-zcut = where(zspec LE 2.05 OR zspec GT 2.54)
-remove, zcut, ra_gal, dec_gal, zspec, qflag, ori_id
-;; Remove low-quality redshifts
-qualcut = where(qflag LT 3 OR qflag GE 10)
-remove, qualcut, ra_gal, dec_gal, zspec, qflag, ori_id
-
-;; Read in CLAMATO galaxies with similar cuts. 
-;readcol, '/Users/kheegan/lya/3d_recon/data/cl2016_redux/cpilot_insp_20160711_v2.txt', $
-;         fname, catnum, zcl, qual_cl, $
-;         f='a,l, f,f'
-;zcut = where(zcl LE 2.2 OR zcl GT 2.5 OR qual_cl LE 2)
-;remove, zcut, catnum, zcl, qual_cl, fname
-;ncl = n_elements(catnum)
-;; Read in CLAMATO catalog
-;cat_fil = '/Users/kheegan/lya/3d_recon/ts/pilot/' + $
-;          'cosmos_ts_pilot_mastercat.fits'
-;cat = mrdfits(cat_fil, 1, /silent)
-;ra_cl = cat[catnum].ra
-;dec_cl = cat[catnum].dec
-
-;dupl_list = []
-;for ii=0, ncl-1 do begin
-;   ratmp = (ra_cl[ii])[0]
-;   dectmp = (dec_cl[ii])[0]
-;   deltapos = sqrt( (ratmp - ra_gal)^2 + (dectmp - dec_gal)^2)
-;   matchpos = where(deltapos LE 2.e-4, nmat)
-;   if nmat GT 0 then dupl_list = [dupl_list, ii]
-;endfor
-;remove, dupl_list, ra_cl, dec_cl, zcl, catnum
-;; Finally, check for cases where a source is targeted in 2 separate
-;; masks 
-;catsort = sort(catnum)
-;catnum = catnum[catsort]
-;ra_cl = ra_cl[catsort]
-;dec_cl = dec_cl[catsort]
-;zcl = zcl[catsort]
-
-;uniqcat = uniq(catnum)
-
-;ra_gal = [ra_gal, ra_cl[uniqcat]]
-;dec_gal = [dec_gal, dec_cl[uniqcat]]
-;zspec = [zspec, zcl[uniqcat]]
-
-xpos = comdist0 * (ra_gal - ra0)/cos(0.5*abs(dec_gal+dec0)*!pi/180.) *!pi / 180. *binfac
-ypos = comdist0 * (dec_gal - dec0)*!pi / 180. * binfac
-zpos = (zspec - zmin) * dcomdist_dz * binfac
-
 xpc = round(comdist0 * (ra_pc - ra0)/cos(0.5*abs(dec_pc+dec0)*!pi/180.) *!pi / 180. *binfac)
 ypc = comdist0 * (dec_pc - dec0)*!pi / 180. * binfac
 zpc = (z_pc - zmin) * dcomdist_dz * binfac
 
-xmos= comdist0 * (ra_mosf - ra0)/cos(0.5*abs(dec_mosf+dec0)*!pi/180.) *!pi / 180. *binfac
-ymos= comdist0 * (dec_mosf - dec0)*!pi / 180. * binfac
-zmos= (z_mosf - zmin) * dcomdist_dz * binfac
-
-in_vol = where(xpos GE 1. AND xpos LE 59. AND ypos GE 1. AND ypos LE 47., n_invol)
-print, n_invol, ' galaxies within map volume'
-
-ra_gal = ra_gal[in_vol]
-dec_gal = dec_gal[in_vol]
-zspec = zspec[in_vol]
-ori_id = ori_id[in_vol]
-
-xpos = round(xpos[in_vol])
-ypos = ypos[in_vol]
-zpos = zpos[in_vol]
-
-in_vol_mosf = where(xmos GE 1. AND xmos LE 47. AND ymos GE 1. $
-                    AND ymos LE 47., n_invol_mosf)
-print, n_invol_mosf, ' MOSFIRE galaxies within map volume'
-xmos = round(xmos[in_vol_mosf])
-ymos = ymos[in_vol_mosf]
-zmos = zmos[in_vol_mosf]
-
 readcol, 'cat_tomoxyz_cl2017_uniq_v1_no3dhst.dat', xpos, ypos, zpos, $
          ori_id, f='f,f,f,a', skipline=4
-
-
 
 
 ;; DONE READING IN GALAXIES ---------------------------------------------
@@ -289,12 +189,6 @@ for ii=0, nslice-1  do begin
       gal_id = ori_id[galcut]
    endif
 
-   nircut = where(xmos GE x0obj AND xmos LT x1obj, nnirhere)
-   if nnirhere GT 0 then begin
-      ynir = ymos[nircut]
-      znir = zmos[nircut]
-   endif
-
    pccut = where(xpc GE x0obj AND xpc LT x1obj, npchere)
    if npchere GT 0 then begin
       ypctmp = ypc[pccut]
@@ -308,6 +202,15 @@ for ii=0, nslice-1  do begin
    
    plot, findgen(876)/2., findgen(24), /nodata, xticks=0, yticks=0, $
          xsty=13, ysty=13, position=xypos,/norm, charsize=1.7
+
+; These sequence of commands is to get the y-position of a few of the
+; slices in order to determine the colorbar positions.
+; First colorbar will be between the 4th and 5th slice, while the
+; other one will be adjacent to the 12th slice... this is assuming
+; that we want to split the plot into 8-panel and 7-panel 
+if ii EQ 3 then ywindow3 = !y.window
+if ii EQ 10 then ywindow10 = !y.window
+if ii EQ 11 then ywindow11 = !y.window
 
    ywin0 = !y.window[0]
    ywin1 = !y.window[1]
@@ -455,12 +358,22 @@ endfor
    
    loadct, 33, /silent
    tickpts =deltamin + (deltamax - deltamin)/ 4.*findgen(5)
-
    ticknames = string(tickpts, '(f5.2)')
-   colorbar, /vertical,position=[0.95,0.37,0.965,0.495] $
-             ,divisions=4, ticknames=ticknames, ncolors=240, $
+
+   ycen_tmp = (ywindow10[1]+ywindow11[0])/2.
+   barpos = [0.95, ycen_tmp - 0.06, 0.965, ycen_tmp + 0.06]
+   colorbar, /vertical,position=barpos, $
+             divisions=4, ticknames=ticknames, ncolors=240, $
              charsize=2.5, charthick=4,/right,/norm, /invert
-   xyouts, 0.954, 0.50, textoidl('\delta^{rec}_F'), charsize=3., $
+   xyouts, 0.954, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
+           charthick=4, /norm
+
+   ycen_tmp = (ywindow3[0]+ywindow3[1])/2.
+   barpos = [0.95, ycen_tmp - 0.06, 0.965, ycen_tmp + 0.06]
+   colorbar, /vertical,position=barpos, $
+             divisions=4, ticknames=ticknames, ncolors=240, $
+             charsize=2.5, charthick=4,/right,/norm, /invert
+   xyouts, 0.954, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
            charthick=4, /norm
 
 device, /close
