@@ -149,7 +149,7 @@ readcol, '/Users/kheegan/lya/3d_recon/map2017/list_tomo_input_2017.txt', $
 set_plot, 'ps'
 
 device, file=outsuf+'.ps', /color, $
-        /encap, ysize=68., xsize=51.08, /inch
+        /encap, ysize=69., xsize=51.08, /inch
 !p.font=0
 nslice=15
 !p.multi = [0,1,nslice]
@@ -195,7 +195,7 @@ for ii=0, nslice-1  do begin
       zpctmp = zpc[pccut]
    endif
 
-   position_win = [0.18, y0[ii]-dy_plot, 0.9, y0[ii]+dy_plot]
+   position_win = [0.14, y0[ii]-dy_plot, 0.92, y0[ii]+dy_plot]
 
    xyratio = 48./876.
    xypos = cgAspect(xyratio, position=position_win)
@@ -299,13 +299,13 @@ if ii EQ 11 then ywindow11 = !y.window
 ;      tvellipse, 4., 4., znpc/2,ynpc/2., /data, thick=5, color=djs_icolor('pink')
    endif
       
-   axis, yaxis=0, charsize=5., charthick=4, yran=[0,24],ysty=1, $
+   axis, yaxis=1, charsize=5., charthick=4, yran=[0,24],ysty=1, $
          ytit=textoidl('y_{perp} (h^{-1} Mpc)'),ytickv=[0,5,10,15,20], $
          yticks=4, yminor=5
 
    decran = dec0 + [0.,24.]/(2998.*comdis((zmin+zmax)/2., Om, Ol))*180./!dpi
-   axis, yaxis=1, charsize=5., charthick=4, yran=decran, /ysty, $
-         ytit='Dec (deg)'
+   axis, yaxis=0, charsize=5., charthick=4, yran=decran, /ysty,ytickformat='(A1)';, $
+  ;       ytit='Dec (deg)'
    
    comdis0 = comdis(zmin, Om, Ol)*2998.
    comdis1 = comdis0 +438.
@@ -361,19 +361,19 @@ endfor
    ticknames = string(tickpts, '(f5.2)')
 
    ycen_tmp = (ywindow10[1]+ywindow11[0])/2.
-   barpos = [0.95, ycen_tmp - 0.06, 0.965, ycen_tmp + 0.06]
+   barpos = [0.955, ycen_tmp - 0.06, 0.97, ycen_tmp + 0.06]
    colorbar, /vertical,position=barpos, $
              divisions=4, ticknames=ticknames, ncolors=240, $
              charsize=2.5, charthick=4,/right,/norm, /invert
-   xyouts, 0.954, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
+   xyouts, 0.96, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
            charthick=4, /norm
 
    ycen_tmp = (ywindow3[0]+ywindow3[1])/2.
-   barpos = [0.95, ycen_tmp - 0.06, 0.965, ycen_tmp + 0.06]
+   barpos = [0.955, ycen_tmp - 0.06, 0.97, ycen_tmp + 0.06]
    colorbar, /vertical,position=barpos, $
              divisions=4, ticknames=ticknames, ncolors=240, $
              charsize=2.5, charthick=4,/right,/norm, /invert
-   xyouts, 0.954, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
+   xyouts, 0.96, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
            charthick=4, /norm
 
 device, /close
