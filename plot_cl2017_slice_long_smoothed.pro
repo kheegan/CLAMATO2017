@@ -19,8 +19,10 @@ zmid = avg([zmin, zmax])
 comdist0 = 2997. * comdis(zmin, Om, Ol)
 dcomdist_dz = dcomdisdz(zmid, Om, Ol) * 2997.
 
-r_sm = 4.
-mapfil_sm = 'map_2017_sm4.0.bin'
+r_sm = 3.
+mapfil = 'map_2017_v0.bin'
+mapfil_sm = 'map_2017_sm3.0.bin'
+outsuf='slice_yz_Lpar2.2_Lperp2.0_v0_sm3.0_skewers'
 
 ;; positions of known protoclusters
 ra_pc =[150.09,150.00, 150.13, 150.24]
@@ -39,9 +41,6 @@ catdir = '/Users/kheegan/lya/3d_recon/ts/ts_cats/'
 cosmos_specz_fil = '/Users/kheegan/scratch/cosmos/spec/' + $
                    'OBSERVED_TARGETS_15April2015_withHeader.dat'
 mosdef2016_fil = catdir+'mosdef_zcat.16aug2016.fits'
-
-outsuf='slice_yz_Lpar2.2_Lperp2.0_v0_sm2.0_skewers'
-mapfil = 'map.bin'
 
 
 nx = 60L
@@ -209,6 +208,10 @@ print, n_invol_mosf, ' MOSFIRE galaxies within map volume'
 xmos = round(xmos[in_vol_mosf])
 ymos = ymos[in_vol_mosf]
 zmos = zmos[in_vol_mosf]
+
+writecol, 'galpos_map2017_tmp.txt', $
+          [xpos, xmos], [ypos, ymos], [zpos, zmos], $
+          fmt='(f7.2,2x,f7.2,2x,f7.2)'
 
 
 ;; DONE READING IN GALAXIES ---------------------------------------------
