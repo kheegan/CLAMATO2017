@@ -15,6 +15,8 @@
 ;;              symbols for each survey (no error bars)
 ;; 2017-09-12 - Plot color bar twice, so that the figure can be split
 ;;              in two in the paper.
+;; 2017-09-29 - Added horizontal colorbar at top, label RA range at
+;;              each mini-sightline plot
 
 Om = 0.31
 Ol = 1.-Om
@@ -149,7 +151,7 @@ readcol, '/Users/kheegan/lya/3d_recon/map2017/list_tomo_input_2017.txt', $
 set_plot, 'ps'
 
 device, file=outsuf+'.ps', /color, $
-        /encap, ysize=69., xsize=51.08, /inch
+        /encap, ysize=72.5, xsize=51.08, /inch
 !p.font=0
 nslice=15
 !p.multi = [0,1,nslice]
@@ -164,7 +166,7 @@ erase
 zmid = avg([zmin, zmax])
 dcomdist_dz = dcomdisdz(zmid, Om, Ol)*2998.
 
-y0 = 1./(2. * nslice) + (0.98/float(nslice)) * findgen(nslice)
+y0 = 1./(2. * nslice) + (0.945/float(nslice)) * findgen(nslice)
 dy_plot = 1./float(2.*nslice)
 
 plotsym, 8, 1.3,/fill
@@ -333,12 +335,14 @@ if ii EQ 11 then ywindow11 = !y.window
    ychsize = !d.y_ch_size
    yvsize  = !d.y_vsize
    
-   plot, [avg(ra0+ra1)/2.], [avg(dec0+dec1)/2.], /nodata, /norm, $
-         position=skypos,xsty=13, ysty=13,/noerase,xran=[ra1-150.,ra0-150.], $
-         yran=[dec0,dec1]
-   ;; Plot slice footprint
    dslice_ra = 2./ mpc_amin / 60.
    raslice0 = ra0 + (ii)*dslice_ra - 150.
+   titstr = string(ra0+(ii)*dslice_ra , '(f7.3)')+textoidl('^\circ')+'<RA<'+ $
+            string(ra0+(ii+1)*dslice_ra, '(f7.3)')+textoidl('^\circ')
+   plot, [avg(ra0+ra1)/2.], [avg(dec0+dec1)/2.], /nodata, /norm, $
+         position=skypos,xsty=13, ysty=13,/noerase,xran=[ra1-150.,ra0-150.], $
+         yran=[dec0,dec1], title=titstr,charsize=3., charthick=4
+   ;; Plot slice footprint
    x_vert = [raslice0, raslice0+dslice_ra, raslice0+dslice_ra, raslice0]
    y_vert = [dec0,    dec0,    dec1, dec1]
    polyfill, x_vert, y_vert, color=150, /data
@@ -368,6 +372,7 @@ endfor
    tickpts =deltamin + (deltamax - deltamin)/ 4.*findgen(5)
    ticknames = string(tickpts, '(f5.2)')
 
+   ; The two vertical bars
    ycen_tmp = (ywindow10[1]+ywindow11[0])/2.
    barpos = [0.955, ycen_tmp - 0.06, 0.97, ycen_tmp + 0.06]
    colorbar, /vertical,position=barpos, $
@@ -382,6 +387,18 @@ endfor
              divisions=4, ticknames=ticknames, ncolors=240, $
              charsize=2.5, charthick=4,/right,/norm, /invert
    xyouts, 0.96, ycen_tmp+0.065, textoidl('\delta^{rec}_F'), charsize=3., $
+           charthick=4, /norm
+
+   ; One horizontal bar at top
+   xcen_tmp = (0.14+0.92)/2.
+   ybottom_tmp = 0.96
+   ythick = 0.008
+   barpos = [xcen_tmp-0.08, ybottom_tmp, xcen_tmp+0.08, ybottom_tmp+ythick]
+   colorbar, /horizontal, position=barpos, $
+             divisions=4, ticknames=ticknames, ncolors=240, $
+             charsize=2.5, charthick=4,/norm, /invert
+   xyouts, xcen_tmp-0.003, ybottom_tmp+ythick+0.005, $
+           textoidl('\delta^{rec}_F'), charsize=3., $
            charthick=4, /norm
 
 device, /close
