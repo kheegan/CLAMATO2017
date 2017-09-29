@@ -32,9 +32,9 @@ dcomdist_dz = dcomdisdz(zmid, Om, Ol) * 2998.
 mpc_amin = comdis(zmid, 0.31, 0.69)*2998. * !pi/180./60.
 
 r_sm = 2.
-mapfil = 'map_2017_v1.bin'
-mapfil_sm = 'map_2017_v1_sm2.0.bin'
-outsuf='slice_yz_Lpar2.0_Lperp2.5_v1_sm2.0_skewers_skymap'
+mapfil = 'map_2017_v2.bin'
+mapfil_sm = 'map_2017_v2_sm2.0.bin'
+outsuf='slice_yz_Lpar2.0_Lperp2.5_v2_sm2.0_skewers_skymap'
 
 ;; Read skewer xy positions
 readcol, '/Users/kheegan/lya/3d_recon/data/cl2017_redux/' + $
@@ -132,7 +132,7 @@ xpc = round(comdist0 * (ra_pc - ra0)/cos(0.5*abs(dec_pc+dec0)*!pi/180.) *!pi / 1
 ypc = comdist0 * (dec_pc - dec0)*!pi / 180. * binfac
 zpc = (z_pc - zmin) * dcomdist_dz * binfac
 
-readcol, 'cat_tomoxyz_cl2017_uniq_v1_no3dhst.dat', xpos, ypos, zpos, $
+readcol, 'cat_tomoxyz_cl2017_uniq_v2_no3dhst.dat', xpos, ypos, zpos, $
          ori_id, f='f,f,f,a', skipline=4
 
 
@@ -244,35 +244,43 @@ if ii EQ 11 then ywindow11 = !y.window
       ;; Squares for zCOSMOS
       if nzd GT 0 then begin
          oplot, zgal[getzDeep]/2., ygal[getzDeep]/2., $
-                  psym=cgsymcat(15), thick=5, color=150, symsize=2.
+                  psym=cgsymcat(15), thick=5, color=150, symsize=2.2
          oplot, zgal[getzDeep]/2., ygal[getzDeep]/2., $
-                psym=cgsymcat('OPENSQUARE'), thick=5, color=0, symsize=2.
+                psym=cgsymcat('OPENSQUARE'), thick=5, color=0, symsize=2.2
       endif
       ;; Diamonds for VUDS
       if nvu GT 0 then begin
          oplot, zgal[getVUDS]/2., ygal[getVUDS]/2., $
-                psym=cgsymcat(14), color=150, symsize=3.
+                psym=cgsymcat(14), color=150, symsize=3.3
          oplot, zgal[getVUDS]/2., ygal[getVUDS]/2., $
-                psym=cgsymcat('OPENDIAMOND'), color=0, symsize=3.
+                psym=cgsymcat('OPENDIAMOND'), color=0, symsize=3.3, thick=3
       endif
       ;; Circles for CLAMATO
       if ncl GT 0 then begin
          oplot, zgal[getCLAMATO]/2., ygal[getCLAMATO]/2., $
-                psym=cgsymcat('FILLEDCIRCLE'), color=150, symsize=2.5
+                psym=cgsymcat('FILLEDCIRCLE'), color=150, symsize=2.7
          oplot, zgal[getCLAMATO]/2., ygal[getCLAMATO]/2., $
-                psym=cgsymcat('OPENCIRCLE'), color=0, symsize=2.5
+                psym=cgsymcat('OPENCIRCLE'), color=0, symsize=2.7, thick=3
       endif
-      ;; Plusses for ZFIRE
-      if nzf GT 0 then oplot, zgal[getZFIRE]/2., ygal[getZFIRE]/2., $
-             psym=cgsymcat(1), color=0, symsize=3.5, thick=6
-      ;; X for MOSDEF
-      if nmd GT 0 then oplot, zgal[getMOSDEF]/2., ygal[getMOSDEF]/2., $
-             psym=cgsymcat(7), color=0, symsize=2.5, thick=6
+      ;; Up Triangles for ZFIRE
+      if nzf GT 0 then begin
+         oplot, zgal[getZFIRE]/2., ygal[getZFIRE]/2., $
+             psym=cgsymcat('FILLEDUPTRIANGLE'), color=150, symsize=2.7
+         oplot, zgal[getZFIRE]/2., ygal[getZFIRE]/2., $
+             psym=cgsymcat('OPENUPTRIANGLE'), color=0, symsize=2.7, thick=3
+      endif
+      ;; Down triangles for MOSDEF
+      if nmd GT 0 then begin
+         oplot, zgal[getMOSDEF]/2., ygal[getMOSDEF]/2., $
+             psym=cgsymcat('FILLEDDOWNTRIANGLE'), color=150, symsize=2.7
+         oplot, zgal[getMOSDEF]/2., ygal[getMOSDEF]/2., $
+             psym=cgsymcat('OPENDOWNTRIANGLE'), color=0, symsize=2.7, thick=3
+      endif
    endif
 
    if npchere GT 0 then begin
-      oplot, zpctmp/2., ypctmp/2., color=0, psym=cgsymcat(46),symsize=6.
-      oplot, zpctmp/2., ypctmp/2., color=255, psym=cgsymcat(45),symsize=6.,thick=8
+      oplot, zpctmp/2., ypctmp/2., color=0, psym=cgsymcat(46),symsize=9.5
+      oplot, zpctmp/2., ypctmp/2., color=255, psym=cgsymcat(45),symsize=9.5,thick=8
    endif
 
    ;; Plot skewer positions
@@ -333,7 +341,7 @@ if ii EQ 11 then ywindow11 = !y.window
    raslice0 = ra0 + (ii)*dslice_ra - 150.
    x_vert = [raslice0, raslice0+dslice_ra, raslice0+dslice_ra, raslice0]
    y_vert = [dec0,    dec0,    dec1, dec1]
-   polyfill, x_vert, y_vert, color=200, /data
+   polyfill, x_vert, y_vert, color=150, /data
    ;; plot sightlines
    plotsym, 0, 0.65,/fill,color=djs_icolor('red')
    oplot, ra_sk, dec_sk, psym=8
