@@ -152,6 +152,7 @@ set_plot, 'ps'
 
 device, file=outsuf+'.ps', /color, $
         /encap, ysize=73.5, xsize=51.08, /inch
+
 !p.font=0
 nslice=15
 !p.multi = [0,1,nslice]
@@ -167,6 +168,7 @@ zmid = avg([zmin, zmax])
 dcomdist_dz = dcomdisdz(zmid, Om, Ol)*2998.
 
 y0 = 1./(2. * nslice) + (0.95/float(nslice)) * findgen(nslice)
+
 dy_plot = 1./float(2.*nslice)
 
 plotsym, 8, 1.3,/fill
@@ -345,6 +347,7 @@ if ii EQ 11 then ywindow11 = !y.window
    plot, [avg(ra0+ra1)/2.], [avg(dec0+dec1)/2.], /nodata, /norm, $
          position=skypos,xsty=13, ysty=13,/noerase,xran=[ra1-150.,ra0-150.], $
          yran=[dec0,dec1], title=titstr,charsize=4., charthick=4
+
    ;; Plot slice footprint
    x_vert = [raslice0, raslice0+dslice_ra, raslice0+dslice_ra, raslice0]
    y_vert = [dec0,    dec0,    dec1, dec1]
@@ -403,8 +406,6 @@ endfor
    xyouts, xcen_tmp-0.003, ybottom_tmp+ythick+0.005, $
            textoidl('\delta^{rec}_F'), charsize=3., $
            charthick=4, /norm
-
-   legend, ['
 
 device, /close
 
