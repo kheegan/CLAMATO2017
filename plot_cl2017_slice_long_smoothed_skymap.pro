@@ -34,9 +34,9 @@ dcomdist_dz = dcomdisdz(zmid, Om, Ol) * 2998.
 mpc_amin = comdis(zmid, 0.31, 0.69)*2998. * !pi/180./60.
 
 r_sm = 2.
-mapfil = 'map_2017_v2.bin'
-mapfil_sm = 'map_2017_v2_sm2.0.bin'
-outsuf='slice_yz_Lpar2.0_Lperp2.5_v2_sm2.0_skewers_skymap'
+mapfil = 'map_2017_v3.bin'
+mapfil_sm = 'map_2017_v3_sm2.0.bin'
+outsuf='slice_yz_Lpar2.0_Lperp2.5_v3_sm2.0_skewers_skymap'
 
 ;; Read skewer xy positions
 readcol, '/Users/kheegan/lya/3d_recon/data/cl2017_redux/' + $
@@ -203,7 +203,7 @@ for ii=0, nslice-1  do begin
    xypos = cgAspect(xyratio, position=position_win)
    
    plot, findgen(876)/2., findgen(24), /nodata, xticks=0, yticks=0, $
-         xsty=13, ysty=13, position=xypos,/norm, charsize=1.7
+         xsty=13, ysty=13, position=xypos,/norm, charsize=5.5
 
 ; These sequence of commands is to get the y-position of a few of the
 ; slices in order to determine the colorbar positions.
@@ -309,23 +309,26 @@ if ii EQ 11 then ywindow11 = !y.window
 ;      tvellipse, 4., 4., znpc/2,ynpc/2., /data, thick=5, color=djs_icolor('pink')
    endif
       
-   axis, yaxis=1, charsize=5., charthick=4, yran=[0,24],ysty=1, $
+   axis, yaxis=1, charsize=5.5, charthick=4, yran=[0,24],ysty=1, $
          ytit=textoidl('y_{perp} (h^{-1} Mpc)'),ytickv=[0,5,10,15,20], $
          yticks=4, yminor=5
 
    decran = dec0 + [0.,24.]/(2998.*comdis((zmin+zmax)/2., Om, Ol))*180./!dpi
-   axis, yaxis=0, charsize=5., charthick=4, yran=decran, /ysty,ytickformat='(A1)';, $
+   axis, yaxis=0, charsize=5.5, charthick=4, yran=decran, /ysty,ytickformat='(A1)';, $
   ;       ytit='Dec (deg)'
    
    comdis0 = comdis(zmin, Om, Ol)*2998.
    comdis1 = comdis0 +438.
-   axis, xaxis=1, xran=[comdis0, comdis1], charthick=4, charsize=5., $
-         xsty=1, xtit=textoidl('Comoving Distance (h^{-1} Mpc)')
+   if ii EQ 6 OR ii EQ 14 then xtit=textoidl('Comoving Distance (h^{-1} Mpc)') $
+                                   else xtit=''
+   axis, xaxis=1, xran=[comdis0, comdis1], charthick=4, charsize=5.5, $
+         xsty=1, xtit=xtit
    
    z0 = zmin
    z1 = z0 + 438./dcomdist_dz
-   axis, xaxis=0, xran=[z0, z1], charthick=4, charsize=5., $ 
-         xsty=1, xtit='Redshift'
+   if ii EQ 0 OR ii EQ 7 then xtit = 'Redshift' else xtit=''
+   axis, xaxis=0, xran=[z0, z1], charthick=4, charsize=5.5, $ 
+         xsty=1, xtit=xtit
 
 ;; Plot little sky map
    position_sky=[0.005,ywin0, 0.18, ywin1]
@@ -341,7 +344,7 @@ if ii EQ 11 then ywindow11 = !y.window
             string(ra0+(ii+1)*dslice_ra, '(f7.3)')+textoidl('^\circ')
    plot, [avg(ra0+ra1)/2.], [avg(dec0+dec1)/2.], /nodata, /norm, $
          position=skypos,xsty=13, ysty=13,/noerase,xran=[ra1-150.,ra0-150.], $
-         yran=[dec0,dec1], title=titstr,charsize=3., charthick=4
+         yran=[dec0,dec1], title=titstr,charsize=4., charthick=4
    ;; Plot slice footprint
    x_vert = [raslice0, raslice0+dslice_ra, raslice0+dslice_ra, raslice0]
    y_vert = [dec0,    dec0,    dec1, dec1]
@@ -351,13 +354,13 @@ if ii EQ 11 then ywindow11 = !y.window
    oplot, ra_sk, dec_sk, psym=8
    
    xran=[ra1-150., ra0-150.]
-   axis, yaxis=0, charsize=4., charthick=4, yran=decran, /ysty, $
+   axis, yaxis=0, charsize=4.5, charthick=4, yran=decran, /ysty, $
          ytit='Dec (deg)'
-   axis, yaxis=1, charsize=4., charthick=4, yran=decran, /ysty, $
+   axis, yaxis=1, charsize=4.5, charthick=4, yran=decran, /ysty, $
          YTICKFORMAT="(A1)"
-   axis, xaxis=0, charsize=4., charthick=4, xran=xran, /xsty, $
+   axis, xaxis=0, charsize=4.5, charthick=4, xran=xran, /xsty, $
          xtit='RA+150.0 (deg)', xtickinterval=0.1, xtickformat='(f4.1)' ;$
-   axis, xaxis=1, charsize=4., charthick=4, xran=xran, /xsty, $
+   axis, xaxis=1, charsize=4.5, charthick=4, xran=xran, /xsty, $
          xtickformat='(A1)'
    
 endfor
@@ -400,6 +403,8 @@ endfor
    xyouts, xcen_tmp-0.003, ybottom_tmp+ythick+0.005, $
            textoidl('\delta^{rec}_F'), charsize=3., $
            charthick=4, /norm
+
+   legend, ['
 
 device, /close
 
